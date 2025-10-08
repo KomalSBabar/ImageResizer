@@ -103,7 +103,6 @@
     html,
     body {
       height: 100%;
-      /* overflow: hidden; */
     }
 
     #previewContainer img {
@@ -111,15 +110,24 @@
       margin: 5px;
       border: 1px solid #ccc;
       border-radius: 5px;
-      
     }
 
-  
+    footer {
+      background: #f8f9fa;
+      text-align: center;
+      padding: 10px;
+      font-size: 14px;
+      color: #333;
+      position: fixed;
+      width: 100%;
+      bottom: 0;
+      border-top: 1px solid #ddd;
+    }
   </style>
 </head>
 
-<body class="d-flex h-100">
-  <div class="container-fluid h-100">
+<body class="d-flex flex-column h-100">
+  <div class="container-fluid flex-grow-1">
     <div class="row h-100">
       <!-- Left Column: Flower -->
       <div class="col-lg-6 col-sm-12 d-flex flex-column justify-content-center align-items-center bg-light">
@@ -167,63 +175,90 @@
               Enlarging a small image (small → big) may reduce quality.
             </p>
           </div>
+
           <div class="mb-3">
             <label for="fileUpload" class="form-label">Upload Multiple Images</label>
             <input class="form-control" type="file" id="fileUpload" accept="image/*" multiple
               onchange="previewImages(event)">
           </div>
+
           <div class="mb-3">
             <label for="widthInput" class="form-label">Width (px)</label>
             <input type="number" class="form-control" id="widthInput" placeholder="Enter width">
           </div>
+
           <div class="mb-3">
             <label for="heightInput" class="form-label">Height (px)</label>
             <input type="number" class="form-control" id="heightInput" placeholder="Enter height">
           </div>
 
-          <div id="previewContainer" class="mb-3 text-center"></div>
+          <!-- Format Selection Buttons -->
+          <div class="mb-3 text-center">
+            <label class="form-label d-block">Select Download Format:</label>
+            <div class="btn-group" role="group">
+              <input type="radio" class="btn-check" name="format" id="jpg" value="jpg" checked>
+              <label class="btn btn-outline-primary" for="jpg">JPG</label>
+
+              <input type="radio" class="btn-check" name="format" id="jpeg" value="jpeg">
+              <label class="btn btn-outline-primary" for="jpeg">JPEG</label>
+
+              <input type="radio" class="btn-check" name="format" id="png" value="png">
+              <label class="btn btn-outline-primary" for="png">PNG</label>
+
+              <input type="radio" class="btn-check" name="format" id="webp" value="webp">
+              <label class="btn btn-outline-primary" for="webp">WEBP</label>
+            </div>
+          </div>
+
+          <div id="previewContainer" class="mb-3 text-center" style="display: none;"></div>
 
           <button type="button" class="btn btn-primary w-100" onclick="resizeAndDownloadAll()">Download All as ZIP</button>
         </form>
+
         <canvas id="canvas" class="d-none"></canvas>
       </div>
     </div>
   </div>
 
+  <!-- Footer with Visit Count -->
+  <footer>
+    <span>Website visits: <span id="visitCount">0</span></span>
+  </footer>
+
   <script>
+    // 🌼 Image Preview
     function previewImages(event) {
-  const files = event.target.files;
-  const previewContainer = document.getElementById('previewContainer');
-  previewContainer.innerHTML = '';
+      const files = event.target.files;
+      const previewContainer = document.getElementById('previewContainer');
+      previewContainer.innerHTML = '';
 
-  if (files.length > 0) {
-    previewContainer.style.display = 'block'; 
-    previewContainer.style.height  = '420px';
-    previewContainer.style.overflow  = 'scroll';
+      if (files.length > 0) {
+        previewContainer.style.display = 'block';
+        previewContainer.style.height = '420px';
+        previewContainer.style.overflow = 'auto';
+      } else {
+        previewContainer.style.display = 'none';
+      }
 
-  } else {
-    previewContainer.style.display = 'none'; 
-   
-  }
-
-  for (let file of files) {
-    const reader = new FileReader();
-    reader.onload = function (e) {
-      const img = document.createElement('img');
-      img.src = e.target.result;
-      previewContainer.appendChild(img);
+      for (let file of files) {
+        const reader = new FileReader();
+        reader.onload = function (e) {
+          const img = document.createElement('img');
+          img.src = e.target.result;
+          previewContainer.appendChild(img);
+        }
+        reader.readAsDataURL(file);
+      }
     }
-    reader.readAsDataURL(file);
-  }
-}
 
-
+    // 🌸 Resize & Download All Images as ZIP
     async function resizeAndDownloadAll() {
       const files = document.getElementById('fileUpload').files;
       const width = parseInt(document.getElementById('widthInput').value);
       const height = parseInt(document.getElementById('heightInput').value);
       const canvas = document.getElementById('canvas');
       const ctx = canvas.getContext('2d');
+      const format = document.querySelector('input[name="format"]:checked').value;
 
       if (!files.length) {
         alert("Please upload at least one image!");
@@ -255,29 +290,32 @@
         ctx.imageSmoothingQuality = "high";
         ctx.drawImage(img, 0, 0, width, height);
 
-        const resizedData = canvas.toDataURL("image/jpeg", 0.9);
+        const mimeType = `image/${format}`;
+        const resizedData = canvas.toDataURL(mimeType, 0.9);
         const base64Data = resizedData.split(',')[1];
 
-        zip.file(file.name.replace(/\.[^/.]+$/, "") + "_resized.jpg", base64ToBlob(base64Data), { binary: true });
+        zip.file(file.name.replace(/\.[^/.]+$/, "") + `_resized.${format}`, base64ToBlob(base64Data, mimeType), { binary: true });
       }
 
-      zip.generateAsync({ type: "blob" }).then(function (content) {
-        saveAs(content, "resized_images.zip");
-      });
+      zip.generateAsync({ type: "blob" }).then(content => saveAs(content, "resized_images.zip"));
     }
 
-    function base64ToBlob(base64) {
+    function base64ToBlob(base64, mimeType) {
       const byteCharacters = atob(base64);
       const byteNumbers = new Array(byteCharacters.length);
       for (let i = 0; i < byteCharacters.length; i++) {
         byteNumbers[i] = byteCharacters.charCodeAt(i);
       }
-      const byteArray = new Uint8Array(byteNumbers);
-      return new Blob([byteArray], { type: 'image/jpeg' });
+      return new Blob([new Uint8Array(byteNumbers)], { type: mimeType });
     }
+
+    // 🌼 Website Visit Counter (LocalStorage)
+    document.addEventListener("DOMContentLoaded", function () {
+      let count = localStorage.getItem("visitCount") || 0;
+      count++;
+      localStorage.setItem("visitCount", count);
+      document.getElementById("visitCount").textContent = count;
+    });
   </script>
-
 </body>
-
 </html>
-
