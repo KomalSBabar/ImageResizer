@@ -77,23 +77,22 @@
       margin-top: 1rem;
     }
 
-    .leaf-left {
-      width: 40px;
-      height: 20px;
-      background-color: green;
-      border-radius: 50%;
-      position: absolute;
-      left: -35px;
-      top: 50px;
-      transform: rotate(-30deg);
-    }
-
+    .leaf-left,
     .leaf-right {
       width: 40px;
       height: 20px;
       background-color: green;
       border-radius: 50%;
       position: absolute;
+    }
+
+    .leaf-left {
+      left: -35px;
+      top: 50px;
+      transform: rotate(-30deg);
+    }
+
+    .leaf-right {
       right: -35px;
       top: 80px;
       transform: rotate(30deg);
@@ -195,45 +194,57 @@
       <!-- Right Column: Upload Form -->
       <div class="col-lg-6 col-sm-12 d-flex flex-column justify-content-center align-items-center">
         <form class="w-75">
-          <div class="mb-3">
-            <p class="text-danger small mt-2">
-              <strong>Note *</strong><br>
-              Enlarging a small image (small → big) may reduce quality.
-            </p>
-          </div>
+          <p class="text-danger small"><strong>Note *</strong> Enlarging a small image (small → big) may reduce quality.</p>
 
           <div class="mb-3">
             <label for="fileUpload" class="form-label">Upload Multiple Images</label>
             <input class="form-control" type="file" id="fileUpload" accept="image/*" multiple onchange="previewImages(event)">
           </div>
-
-          <div class="mb-3">
+          <div class="row mb-3">
+          <div class="col-md-6 mb-3 mb-md-0">
             <label for="widthInput" class="form-label">Width (px)</label>
             <input type="number" class="form-control" id="widthInput" placeholder="Enter width">
           </div>
 
-          <div class="mb-3">
+          <div class="col-md-6 mb-3 mb-md-0">
             <label for="heightInput" class="form-label">Height (px)</label>
             <input type="number" class="form-control" id="heightInput" placeholder="Enter height">
           </div>
+          </div>
 
-          <!-- Format Selection Buttons -->
-          <div class="mb-3 text-center">
-            <label class="form-label d-block">Select Download Format:</label>
-            <div class="btn-group" role="group">
-              <input type="radio" class="btn-check" name="format" id="jpg" value="jpg" checked>
-              <label class="btn btn-outline-primary" for="jpg">JPG</label>
+          <div class="row mb-3">
+            <!-- Fit Type -->
+            <div class="col-md-6 mb-3 mb-md-0">
+              <label class="form-label d-block">Image Fit Type:</label>
+              <div class="btn-group" role="group" style="width:-webkit-fill-available">
+                <input type="radio" class="btn-check" name="fit" id="contain" value="contain" >
+                <label class="btn btn-outline-secondary" for="contain">Contain</label>
 
-              <input type="radio" class="btn-check" name="format" id="jpeg" value="jpeg">
-              <label class="btn btn-outline-primary" for="jpeg">JPEG</label>
+                <input type="radio" class="btn-check" name="fit" id="cover" value="cover" checked>
+                <label class="btn btn-outline-secondary" for="cover">Cover</label>
+              </div>
+            </div>
 
-              <input type="radio" class="btn-check" name="format" id="png" value="png">
-              <label class="btn btn-outline-primary" for="png">PNG</label>
+            <!-- Format -->
+            <div class="col-md-6">
+              <label class="form-label d-block">Download Format:</label>
+              <div class="btn-group" role="group" style="width:-webkit-fill-available">
+                <input type="radio" class="btn-check" name="format" id="jpg" value="jpg" checked>
+                <label class="btn btn-outline-primary" for="jpg">JPG</label>
 
-              <input type="radio" class="btn-check" name="format" id="webp" value="webp">
-              <label class="btn btn-outline-primary" for="webp">WEBP</label>
+                <input type="radio" class="btn-check" name="format" id="jpeg" value="jpeg">
+                <label class="btn btn-outline-primary" for="jpeg">JPEG</label>
+
+                <input type="radio" class="btn-check" name="format" id="png" value="png">
+                <label class="btn btn-outline-primary" for="png">PNG</label>
+
+                <input type="radio" class="btn-check" name="format" id="webp" value="webp">
+                <label class="btn btn-outline-primary" for="webp">WEBP</label>
+              </div>
             </div>
           </div>
+
+      
 
           <div id="previewContainer" class="mb-3 text-center"></div>
 
@@ -245,7 +256,6 @@
     </div>
   </div>
 
-  <!-- Footer -->
   <footer>
     <span>Website visits: <span id="visitCount">0</span></span>
   </footer>
@@ -254,8 +264,7 @@
     let selectedFiles = [];
 
     function previewImages(event) {
-      const files = Array.from(event.target.files);
-      selectedFiles = files; // store all files
+      selectedFiles = Array.from(event.target.files);
       renderPreview();
     }
 
@@ -296,6 +305,7 @@
       const canvas = document.getElementById('canvas');
       const ctx = canvas.getContext('2d');
       const format = document.querySelector('input[name="format"]:checked').value;
+      const fitType = document.querySelector('input[name="fit"]:checked').value;
 
       if (!selectedFiles.length) return alert("Please upload at least one image!");
       if (!width || !height) return alert("Please enter width and height!");
@@ -317,9 +327,28 @@
 
         canvas.width = width;
         canvas.height = height;
-        ctx.imageSmoothingEnabled = true;
-        ctx.imageSmoothingQuality = "high";
-        ctx.drawImage(img, 0, 0, width, height);
+        ctx.clearRect(0, 0, width, height);
+        ctx.fillStyle = "white";
+        ctx.fillRect(0, 0, width, height);
+
+        let sx = 0, sy = 0, sWidth = img.width, sHeight = img.height;
+        let dx = 0, dy = 0, dWidth = width, dHeight = height;
+
+        if (fitType === "contain") {
+          const scale = Math.min(width / img.width, height / img.height);
+          dWidth = img.width * scale;
+          dHeight = img.height * scale;
+          dx = (width - dWidth) / 2;
+          dy = (height - dHeight) / 2;
+        } else if (fitType === "cover") {
+          const scale = Math.max(width / img.width, height / img.height);
+          sWidth = width / scale;
+          sHeight = height / scale;
+          sx = (img.width - sWidth) / 2;
+          sy = (img.height - sHeight) / 2;
+        }
+
+        ctx.drawImage(img, sx, sy, sWidth, sHeight, dx, dy, dWidth, dHeight);
 
         const mimeType = `image/${format}`;
         const resizedData = canvas.toDataURL(mimeType, 0.9);
@@ -340,8 +369,7 @@
       return new Blob([new Uint8Array(byteNumbers)], { type: mimeType });
     }
 
-    // Visit Counter
-    document.addEventListener("DOMContentLoaded", function () {
+    document.addEventListener("DOMContentLoaded", () => {
       let count = localStorage.getItem("visitCount") || 0;
       count++;
       localStorage.setItem("visitCount", count);
