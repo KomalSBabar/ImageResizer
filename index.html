@@ -11,7 +11,6 @@
   <script src="https://cdnjs.cloudflare.com/ajax/libs/FileSaver.js/2.0.5/FileSaver.min.js"></script>
 
   <style>
-    /* Flower animation */
     .box {
       height: 150px;
       width: 150px;
@@ -105,11 +104,38 @@
       height: 100%;
     }
 
-    #previewContainer img {
-      max-height: 120px;
+    #previewContainer {
+      display: none;
+      height: 420px;
+      overflow: auto;
+      text-align: center;
+    }
+
+    .preview-item {
+      position: relative;
+      display: inline-block;
       margin: 5px;
+    }
+
+    .preview-item img {
+      max-height: 120px;
       border: 1px solid #ccc;
       border-radius: 5px;
+    }
+
+    .remove-btn {
+      position: absolute;
+      top: 0px;
+      right: 0px;
+      background: rgba(255, 0, 0, 0.8);
+      color: white;
+      border: none;
+      border-radius: 50%;
+      width: 22px;
+      height: 22px;
+      font-size: 14px;
+      cursor: pointer;
+      line-height: 20px;
     }
 
     footer {
@@ -178,8 +204,7 @@
 
           <div class="mb-3">
             <label for="fileUpload" class="form-label">Upload Multiple Images</label>
-            <input class="form-control" type="file" id="fileUpload" accept="image/*" multiple
-              onchange="previewImages(event)">
+            <input class="form-control" type="file" id="fileUpload" accept="image/*" multiple onchange="previewImages(event)">
           </div>
 
           <div class="mb-3">
@@ -210,7 +235,7 @@
             </div>
           </div>
 
-          <div id="previewContainer" class="mb-3 text-center" style="display: none;"></div>
+          <div id="previewContainer" class="mb-3 text-center"></div>
 
           <button type="button" class="btn btn-primary w-100" onclick="resizeAndDownloadAll()">Download All as ZIP</button>
         </form>
@@ -220,58 +245,64 @@
     </div>
   </div>
 
-  <!-- Footer with Visit Count -->
+  <!-- Footer -->
   <footer>
     <span>Website visits: <span id="visitCount">0</span></span>
   </footer>
 
   <script>
-    // 🌼 Image Preview
+    let selectedFiles = [];
+
     function previewImages(event) {
-      const files = event.target.files;
+      const files = Array.from(event.target.files);
+      selectedFiles = files; // store all files
+      renderPreview();
+    }
+
+    function renderPreview() {
       const previewContainer = document.getElementById('previewContainer');
       previewContainer.innerHTML = '';
 
-      if (files.length > 0) {
+      if (selectedFiles.length > 0) {
         previewContainer.style.display = 'block';
-        previewContainer.style.height = '420px';
-        previewContainer.style.overflow = 'auto';
       } else {
         previewContainer.style.display = 'none';
+        return;
       }
 
-      for (let file of files) {
+      selectedFiles.forEach((file, index) => {
         const reader = new FileReader();
         reader.onload = function (e) {
-          const img = document.createElement('img');
-          img.src = e.target.result;
-          previewContainer.appendChild(img);
+          const wrapper = document.createElement('div');
+          wrapper.className = 'preview-item';
+          wrapper.innerHTML = `
+            <button class="remove-btn" onclick="removeImage(${index})">×</button>
+            <img src="${e.target.result}" alt="preview">
+          `;
+          previewContainer.appendChild(wrapper);
         }
         reader.readAsDataURL(file);
-      }
+      });
     }
 
-    // 🌸 Resize & Download All Images as ZIP
+    function removeImage(index) {
+      selectedFiles.splice(index, 1);
+      renderPreview();
+    }
+
     async function resizeAndDownloadAll() {
-      const files = document.getElementById('fileUpload').files;
       const width = parseInt(document.getElementById('widthInput').value);
       const height = parseInt(document.getElementById('heightInput').value);
       const canvas = document.getElementById('canvas');
       const ctx = canvas.getContext('2d');
       const format = document.querySelector('input[name="format"]:checked').value;
 
-      if (!files.length) {
-        alert("Please upload at least one image!");
-        return;
-      }
-      if (!width || !height) {
-        alert("Please enter width and height!");
-        return;
-      }
+      if (!selectedFiles.length) return alert("Please upload at least one image!");
+      if (!width || !height) return alert("Please enter width and height!");
 
       const zip = new JSZip();
 
-      for (let file of files) {
+      for (let file of selectedFiles) {
         const dataUrl = await new Promise((resolve) => {
           const reader = new FileReader();
           reader.onload = e => resolve(e.target.result);
@@ -309,7 +340,7 @@
       return new Blob([new Uint8Array(byteNumbers)], { type: mimeType });
     }
 
-    // 🌼 Website Visit Counter (LocalStorage)
+    // Visit Counter
     document.addEventListener("DOMContentLoaded", function () {
       let count = localStorage.getItem("visitCount") || 0;
       count++;
