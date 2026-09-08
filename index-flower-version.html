@@ -1,0 +1,420 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Flower & Upload (Multiple)</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link href="https://fonts.cdnfonts.com/css/ridasbin-trial" rel="stylesheet">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/FileSaver.js/2.0.5/FileSaver.min.js"></script>
+
+  <style>
+    .box {
+      height: 150px;
+      width: 150px;
+      position: relative;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      animation: spin 5s linear infinite;
+    }
+
+    @keyframes spin {
+      0% {
+        transform: rotate(0deg);
+      }
+
+      100% {
+        transform: rotate(360deg);
+      }
+    }
+
+    .box-2 {
+      background-color: #f1c6fcff;
+      height: 100%;
+      width: 100%;
+      transform: rotate(15deg);
+      border: 1px solid #e17deeff;
+      border-radius: 5px;
+    }
+
+    .box-3 {
+      background-color: #e17deeff;
+      height: 100%;
+      width: 100%;
+      transform: rotate(15deg);
+      border-radius: 5px;
+    }
+
+    .boxduplicate {
+      background-color: #6de63eff;
+      height: 50px;
+      width: 50px;
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      border-radius: 50%;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+    }
+
+    .boxduplicate2 {
+      background-color: #21da9cff;
+      height: 25px;
+      width: 25px;
+      border-radius: 50%;
+    }
+
+    .stem {
+      width: 5px;
+      height: 200px;
+      background-color: green;
+      position: relative;
+      margin-top: 1rem;
+    }
+
+    .leaf-left,
+    .leaf-right {
+      width: 40px;
+      height: 20px;
+      background-color: green;
+      border-radius: 50%;
+      position: absolute;
+    }
+
+    .leaf-left {
+      left: -35px;
+      top: 50px;
+      transform: rotate(-30deg);
+    }
+
+    .leaf-right {
+      right: -35px;
+      top: 80px;
+      transform: rotate(30deg);
+    }
+
+    html,
+    body {
+      height: 100%;
+    }
+
+    #previewContainer {
+      display: none;
+      height: 420px;
+      overflow: auto;
+      text-align: center;
+    }
+
+    .preview-item {
+      position: relative;
+      display: inline-block;
+      margin: 5px;
+    }
+
+    .preview-item img {
+      max-height: 120px;
+      border: 1px solid #ccc;
+      border-radius: 5px;
+    }
+
+    .remove-btn {
+      position: absolute;
+      top: 0px;
+      right: 0px;
+      background: rgba(255, 0, 0, 0.8);
+      color: white;
+      border: none;
+      border-radius: 50%;
+      width: 22px;
+      height: 22px;
+      font-size: 14px;
+      cursor: pointer;
+      line-height: 20px;
+    }
+
+    footer {
+      background: #f8f9fa;
+      text-align: center;
+      padding: 10px;
+      font-size: 14px;
+      color: #333;
+      position: fixed;
+      width: 100%;
+      bottom: 0;
+      border-top: 1px solid #ddd;
+    }
+  </style>
+
+</head>
+
+<body class="d-flex flex-column h-100">
+  <div class="container-fluid flex-grow-1">
+    <div class="row h-100">
+      <!-- Left Column: Flower -->
+      <div class="col-lg-6 col-sm-12 d-flex flex-column justify-content-center align-items-center bg-light">
+        <div class="box">
+          <div class="box-2">
+            <div class="box-3">
+              <div class="box-2">
+                <div class="box-3">
+                  <div class="box-2">
+                    <div class="box-3">
+                      <div class="box-2">
+                        <div class="box-3">
+                          <div class="box-2">
+                            <div class="box-3">
+                              <div class="box-2">
+                                <div class="boxduplicate">
+                                  <div class="boxduplicate2"></div>
+                                </div>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="stem">
+          <div class="leaf-left"></div>
+          <div class="leaf-right"></div>
+          <p style="font-family: 'Ridasbin Trial', sans-serif; font-size:45px; margin-left:35px; margin-top:30px;">
+            Image Resize</p>
+        </div>
+      </div>
+
+      <!-- Right Column: Upload Form -->
+      <div class="col-lg-6 col-sm-12 d-flex flex-column justify-content-center align-items-center">
+        <form class="w-75">
+          <p class="text-danger small"><strong>Note *</strong> Enlarging a small image (small → big) may reduce quality.</p>
+
+          <div class="mb-3">
+            <label for="fileUpload" class="form-label">Upload Multiple Images</label>
+            <input class="form-control" type="file" id="fileUpload" accept="image/*" multiple onchange="previewImages(event)">
+          </div>
+          <div class="row mb-3">
+          <div class="col-md-6 mb-3 mb-md-0">
+            <label for="widthInput" class="form-label">Width (px)</label>
+            <input type="number" class="form-control" id="widthInput" placeholder="Enter width">
+          </div>
+
+          <div class="col-md-6 mb-3 mb-md-0">
+            <label for="heightInput" class="form-label">Height (px)</label>
+            <input type="number" class="form-control" id="heightInput" placeholder="Enter height">
+          </div>
+          </div>
+
+          <div class="row mb-3">
+            <!-- Fit Type -->
+            <div class="col-md-6 mb-3 mb-md-0">
+              <label class="form-label d-block">Image Fit Type:</label>
+              <div class="btn-group" role="group" style="width:-webkit-fill-available">
+                <input type="radio" class="btn-check" name="fit" id="contain" value="contain" >
+                <label class="btn btn-outline-secondary" for="contain">Contain</label>
+
+                <input type="radio" class="btn-check" name="fit" id="cover" value="cover" checked>
+                <label class="btn btn-outline-secondary" for="cover">Cover</label>
+              </div>
+            </div>
+
+            <!-- Format -->
+            <div class="col-md-6">
+              <label class="form-label d-block">Download Format:</label>
+              <div class="btn-group" role="group" style="width:-webkit-fill-available">
+                <input type="radio" class="btn-check" name="format" id="jpg" value="jpg" >
+                <label class="btn btn-outline-primary" for="jpg">JPG</label>
+
+                <input type="radio" class="btn-check" name="format" id="jpeg" value="jpeg">
+                <label class="btn btn-outline-primary" for="jpeg">JPEG</label>
+
+                <input type="radio" class="btn-check" name="format" id="png" value="png" checked>
+                <label class="btn btn-outline-primary" for="png">PNG</label>
+
+                <input type="radio" class="btn-check" name="format" id="webp" value="webp">
+                <label class="btn btn-outline-primary" for="webp">WEBP</label>
+              </div>
+            </div>
+
+
+            <div class="col-md-6">
+                <div class="form-check mb-3">
+                  <input class="form-check-input" type="checkbox" id="removeBg">
+                  <label class="form-check-label" for="removeBg">
+                      Remove Background
+                  </label>
+                </div>
+            </div>
+          
+
+
+          </div>
+
+      
+
+          <div id="previewContainer" class="mb-3 text-center"></div>
+
+          <button type="button" class="btn btn-primary w-100" onclick="resizeAndDownloadAll()">Download All as ZIP</button>
+        </form>
+
+        <canvas id="canvas" class="d-none"></canvas>
+      </div>
+    </div>
+  </div>
+
+
+  <script>
+    let selectedFiles = [];
+
+    function previewImages(event) {
+      selectedFiles = Array.from(event.target.files);
+      renderPreview();
+    }
+
+    function renderPreview() {
+      const previewContainer = document.getElementById('previewContainer');
+      previewContainer.innerHTML = '';
+
+      if (selectedFiles.length > 0) {
+        previewContainer.style.display = 'block';
+      } else {
+        previewContainer.style.display = 'none';
+        return;
+      }
+
+      selectedFiles.forEach((file, index) => {
+        const reader = new FileReader();
+        reader.onload = function (e) {
+          const wrapper = document.createElement('div');
+          wrapper.className = 'preview-item';
+          wrapper.innerHTML = `
+            <button class="remove-btn" onclick="removeImage(${index})">×</button>
+            <img src="${e.target.result}" alt="preview">
+          `;
+          previewContainer.appendChild(wrapper);
+        }
+        reader.readAsDataURL(file);
+      });
+    }
+
+    function removeImage(index) {
+      selectedFiles.splice(index, 1);
+      renderPreview();
+    }
+
+    async function resizeAndDownloadAll() {
+      const width = parseInt(document.getElementById('widthInput').value);
+      const height = parseInt(document.getElementById('heightInput').value);
+      const canvas = document.getElementById('canvas');
+      const ctx = canvas.getContext('2d');
+      const format = document.querySelector('input[name="format"]:checked').value;
+      const fitType = document.querySelector('input[name="fit"]:checked').value;
+
+      if (!selectedFiles.length) return alert("Please upload at least one image!");
+      // if (!width || !height) return alert("Please enter width and height!");
+      const shouldResize = width > 0 && height > 0;
+      const zip = new JSZip();
+
+      for (let file of selectedFiles) {
+
+        let imageFile = file;
+
+        if (document.getElementById("removeBg").checked) {
+            imageFile = await removeBackgroundImage(file);
+        }
+
+        const dataUrl = await new Promise((resolve) => {
+          const reader = new FileReader();
+          reader.onload = e => resolve(e.target.result);
+          reader.readAsDataURL(imageFile);
+        });
+
+        const img = await new Promise((resolve) => {
+          const image = new Image();
+          image.onload = () => resolve(image);
+          image.src = dataUrl;
+        });
+
+          let sx = 0;
+            let sy = 0;
+            let sWidth = img.width;
+            let sHeight = img.height;
+            let dx = 0;
+            let dy = 0;
+            let dWidth = img.width;
+            let dHeight = img.height;
+
+        if (shouldResize) {
+            canvas.width = width;
+            canvas.height = height;
+            ctx.clearRect(0, 0, width, height);
+            ctx.fillStyle = "white";
+            ctx.fillRect(0, 0, width, height);
+            dWidth = width;
+            dHeight = height;
+
+               if (fitType === "contain") {
+                const scale = Math.min(width / img.width, height / img.height);
+                dWidth = img.width * scale;
+                dHeight = img.height * scale;
+                dx = (width - dWidth) / 2;
+                dy = (height - dHeight) / 2;
+              } else if (fitType === "cover") {
+                const scale = Math.max(width / img.width, height / img.height);
+                sWidth = width / scale;
+                sHeight = height / scale;
+                sx = (img.width - sWidth) / 2;
+                sy = (img.height - sHeight) / 2;
+              }
+
+            ctx.drawImage(img, sx, sy, sWidth, sHeight, dx, dy, dWidth, dHeight);
+
+
+        } else {
+            canvas.width = img.width;
+            canvas.height = img.height;
+
+            ctx.drawImage(img, 0, 0);
+        }
+
+     
+
+        
+        const mimeType = `image/${format}`;
+        const resizedData = canvas.toDataURL(mimeType, 0.9);
+        const base64Data = resizedData.split(',')[1];
+
+        zip.file(file.name.replace(/\.[^/.]+$/, "") + `_resized.${format}`, base64ToBlob(base64Data, mimeType), { binary: true });
+      }
+
+      zip.generateAsync({ type: "blob" }).then(content => saveAs(content, "resized_images.zip"));
+    }
+
+    function base64ToBlob(base64, mimeType) {
+      const byteCharacters = atob(base64);
+      const byteNumbers = new Array(byteCharacters.length);
+      for (let i = 0; i < byteCharacters.length; i++) {
+        byteNumbers[i] = byteCharacters.charCodeAt(i);
+      }
+      return new Blob([new Uint8Array(byteNumbers)], { type: mimeType });
+    }
+
+   
+  </script>
+
+  <script type="module">
+import { removeBackground } from 'https://cdn.jsdelivr.net/npm/@imgly/background-removal/+esm';
+
+window.removeBackgroundImage = removeBackground;
+</script>
+</body>
+</html>
+
