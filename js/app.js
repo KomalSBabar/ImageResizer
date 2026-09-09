@@ -43,6 +43,7 @@
             const ctx = canvas.getContext('2d');
             const format = document.querySelector('input[name="format"]:checked').value;
             const fitType = document.querySelector('input[name="fit"]:checked').value;
+            const bgMode = document.querySelector('input[name="bgMode"]:checked').value;
 
             if (!selectedFiles.length) return alert("Please upload at least one image!");
             // if (!width || !height) return alert("Please enter width and height!");
@@ -51,11 +52,23 @@
 
             for (let file of selectedFiles) {
                 let imageFile = file;
-                if (document.getElementById("removeBg").checked) {
-                    imageFile = await removeBackgroundImage(file);
+                // if (document.getElementById("removeBg").checked) {
+                //     imageFile = await removeBackgroundImage(file);
+                // }
+
+                let outputFormat = format;
+
+                if(bgMode === "transparent" || bgMode === "white" ){
+                  imageFile = await removeBackgroundImage(file);
+                  
+                  if (bgMode === "transparent" && (format === "jpg" || format === "jpeg")) {
+                      outputFormat = "png";
+                  }
+                  
                 }
                 const dataUrl = await new Promise((resolve) => {
                 const reader = new FileReader();
+               
                 reader.onload = e => resolve(e.target.result);
                 reader.readAsDataURL(imageFile);
                 });
@@ -79,8 +92,12 @@
                     canvas.width = width;
                     canvas.height = height;
                     ctx.clearRect(0, 0, width, height);
-                    ctx.fillStyle = "white";
-                    ctx.fillRect(0, 0, width, height);
+                    if (bgMode === "white") {
+                        ctx.fillStyle = "#ffffff";
+                        ctx.fillRect(0, 0, width, height);
+                    }
+                    
+                    
                     dWidth = width;
                     dHeight = height;
 
@@ -105,19 +122,43 @@
                     canvas.width = img.width;
                     canvas.height = img.height;
 
+                    ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+                    if (bgMode === "white") {
+                        ctx.fillStyle = "#ffffff";
+                        ctx.fillRect(0, 0, canvas.width, canvas.height);
+                    }
+
                     ctx.drawImage(img, 0, 0);
                 }
 
-                const mimeType = `image/${format}`;
+                // const mimeType = `image/${format}`;
+                // const resizedData = canvas.toDataURL(mimeType, 0.9);
+                // const base64Data = resizedData.split(',')[1];
+
+                // zip.file(file.name.replace(/\.[^/.]+$/, "") + `_resized.${format}`, base64ToBlob(base64Data, mimeType), { binary: true });
+                
+                const mimeType = `image/${outputFormat}`;
                 const resizedData = canvas.toDataURL(mimeType, 0.9);
                 const base64Data = resizedData.split(',')[1];
 
-                zip.file(file.name.replace(/\.[^/.]+$/, "") + `_resized.${format}`, base64ToBlob(base64Data, mimeType), { binary: true });
-            }
+                zip.file(
+                    file.name.replace(/\.[^/.]+$/, "") +
+                    `_resized.${outputFormat}`,
+                    base64ToBlob(base64Data, mimeType),
+                    { binary: true }
+                );
+            
+              }
 
             zip.generateAsync({ type: "blob" }).then(content => saveAs(content, "resized_images.zip"));
+            const content = await zip.generateAsync({
+                  type: "blob"
+            });
 
-            
+          saveAs(content, "resized_images.zip");
+        
+
         } catch(err) {
 
             console.error(err);
@@ -125,7 +166,7 @@
 
         } finally {
 
-            hideLoader();
+          hideLoader();
 
         }
       
