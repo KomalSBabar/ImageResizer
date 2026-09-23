@@ -1,0 +1,278 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Birthday Post Generator For All Entities</title>
+    <link href="https://fonts.googleapis.com/css2?family=Great+Vibes&display=swap" rel="stylesheet">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: Arial, sans-serif;
+            background: #f5f5f5;
+            padding: 20px;
+        }
+
+        .container {
+            display: flex;
+            gap: 30px;
+            align-items: flex-start;
+        }
+
+        .form-panel {
+            width: 320px;
+            background: #fff;
+            padding: 20px;
+            border-radius: 12px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, .1);
+        }
+
+        .form-panel h2 {
+            margin-bottom: 20px;
+        }
+
+        .form-group {
+            margin-bottom: 15px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 6px;
+            font-weight: bold;
+        }
+
+        input,
+        select {
+            width: 100%;
+            padding: 10px;
+        }
+
+        .btn {
+            border: none;
+            padding: 10px 18px;
+            border-radius: 6px;
+            cursor: pointer;
+            color: #fff;
+        }
+
+        .generate-btn {
+            background: #198754;
+        }
+
+        .download-btn {
+            background: #0d6efd;
+        }
+
+        .poster-wrapper {
+            background: #fff;
+            /* padding: 12px; */
+            border-radius: 12px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, .1);
+        }
+
+        .poster {
+            width: 850px;
+            height: 550px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        /* Background */
+        .poster-bg {
+            position: absolute;
+            inset: 0;
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        /* Logo */
+        .company-logo {
+            position: absolute;
+            top: 55px;
+            left: 37px;
+            width: 330px;
+            height: 100px;
+            object-fit: contain;
+            z-index: 5;
+        }
+
+        .chemtek-logo{
+            left: 5px !important;
+            height: 145px !important;
+        }
+
+        /* HAPPY */
+        .happy {
+            position: absolute;
+            top: 204px;
+            left: 186px;
+            font-size: 28px;
+            font-weight: 700;
+            letter-spacing: 2px;
+            color: #000;
+            z-index: 3;
+            font-weight: 700;
+        }
+
+        /* BIRTHDAY */
+        .birthday {
+            position: absolute;
+            top: 247px;
+            left: 45px;
+            font-family: 'Great Vibes', cursive;
+            font-size: 122px;
+            font-weight: 400;
+            line-height: 1;
+            color: #000;
+            z-index: 2;
+        }
+
+        /* Employee Name */
+        .employee-name {
+            position: absolute;
+            top: 382px;
+            left: 60px;
+            font-size: 40px;
+            font-weight: 700;
+            color: #000;
+            z-index: 2;
+        }
+
+        /* Message */
+        .message {
+            position: absolute;
+            bottom: 35px;
+            left: -16px;
+            width: 650px;
+            text-align: center;
+            font-size: 17px;
+            font-style: italic;
+            line-height: 1.5;
+            color: #333;
+            z-index: 2;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <div class="form-panel">
+            <h2>Birthday Generator</h2>
+            <div class="form-group">
+                <label>Company</label>
+                <select id="company" onchange="updateCompanyLogo()">
+                    <option value="puresynth">PureSynth</option>
+                    <option value="chemtek">Chemtek Scientific</option>
+                    <option value="chemsynthlabs">ChemSynth Labs</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label>Employee Name</label>
+                <input type="text" id="employee" placeholder="Enter Employee Name">
+            </div>
+            <button class="btn generate-btn" onclick="generatePost()">Generate</button>
+            <button class="btn download-btn" onclick="downloadPoster()">Download PNG</button>
+        </div>
+        <div class="poster-wrapper">
+            <div id="poster" class="poster">
+                <img src="images/birthday-bg.png" class="poster-bg" alt="" crossorigin="anonymous">
+                <img id="logoPreview" class="company-logo" src="images/puresynth-logo.png" alt="">
+                <div class="happy"> HAPPY </div>
+                <div class="birthday"> Birthday </div>
+                <div class="employee-name" id="namePreview"> TO, Tanvi More</div>
+                <div class="message">
+                    <p> On your special day, we celebrate you—not just for your work, </p>
+                    <p> but for the energy and positivity you bring to the team. </p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function generatePost() {
+            const employee = document.getElementById("employee").value;
+            document.getElementById("namePreview").innerText = "TO, " + employee;
+            updateCompanyLogo();
+        }
+
+        function updateCompanyLogo() {
+            const company = document.getElementById("company").value;
+            const logo = document.getElementById("logoPreview");
+
+            // Reset custom class first
+            logo.classList.remove("chemtek-logo");
+
+            switch(company) {
+
+                case "puresynth":
+                    logo.src = "images/puresynth-logo.png";
+                    break;
+
+                case "chemtek":
+                    logo.src = "images/chemtek-new.png";
+                    logo.classList.add("chemtek-logo");
+                    break;
+
+                case "chemsynthlabs":
+                    logo.src = "images/chemsynth-logo.png";
+                    break;
+
+                default:
+                    logo.src = "images/puresynth-logo.png";
+            }
+        }
+
+        /* Logo Upload Preview */
+        document.getElementById("logoUpload")
+                .addEventListener("change", function (e) {
+                    const file = e.target.files[0];
+                    if (!file) return;
+                    const reader = new FileReader();
+                    reader.onload = function (event) {
+                        document.getElementById("logoPreview").src = event.target.result;
+                    };
+                    reader.readAsDataURL(file);
+                });
+
+        /* Download PNG */
+        async function downloadPoster() {
+            const poster = document.getElementById("poster");
+            const images = poster.querySelectorAll("img");
+            await Promise.all(
+                Array.from(images).map(img => {
+                    if (img.complete) return Promise.resolve();
+                    return new Promise(resolve => {
+                        img.onload = resolve;
+                        img.onerror = resolve;
+                    });
+                })
+            );
+            html2canvas(poster, {
+                scale: 4,
+                useCORS: true,
+                backgroundColor: null
+            }).then(canvas => {
+
+                const link = document.createElement("a");
+
+                link.download = "birthday-post.png";
+
+                link.href = canvas.toDataURL("image/png");
+
+                link.click();
+            });
+        }
+        updateCompanyLogo();
+    </script>
+
+</body>
+
+</html>
