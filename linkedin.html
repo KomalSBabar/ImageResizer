@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>LinkedIn Post Generator</title>
+    <link href="https://fonts.googleapis.com/css2?family=Great+Vibes&display=swap" rel="stylesheet">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    <link rel="stylesheet" href="css/linkedin-style.css">
+   
+</head>
+<body>
+    <div class="container">
+        <div class="controls">
+            <label>Employee Image</label>
+            <input type="file" id="imageInput" accept="image/*">
+
+            <label>Employee Name</label>
+            <input type="text" id="nameInput" placeholder="Enter Employee Name">
+
+            <label>Employee Designation</label>
+            <input type="text" id="designationInput" placeholder="Enter Designation">
+
+            <label>Description</label>
+            <textarea name="description" id="description" rows="4" cols="15"></textarea>
+
+            <button id="updateBtn">Update Poster</button>
+            <button id="downloadBtn">Download Poster</button>
+
+        </div>
+        <div class="post-wrapper">
+            <div id="poster" class="poster">
+                <img src="images/LinkedIn-Assets/image-bg2.png" alt="" class="poster-bg" alt="" crossorigin="anonymous">
+                <img src="images/puresynth-logo.png" alt="" id="logoPreview" class="company-logo">
+                <div class="welcome">Welcome</div>
+                <div class="team">To The Team!</div>
+                <div class="employee-name" id="employeeName">Prashant Kumar Gaurav</div>
+                <div class="employee-designation" id="employeeDesignation">AGM - Sales & Marketing (PAN India)</div>
+                <div class="employee-pic-wrapper">
+                    <img src="images/LinkedIn-Assets/image-p.jpg" alt="" class="employee-pic" id="employeePic">
+                </div>
+                <div class="message" id="message">
+                    We are pleased to welcome Mr. Prashant Kumar Gaurav to PureSynth Research Chemicals as <span id="messageEmployeeDesignation">AGM - Sales & Marketing (PAN India)</span>. We extend our warmest wishes and embarks on this new professional journey with us. With over 20 years of experience in Sales & Marketing. He brings valuable industry expertise and strategic insights.   
+                </div>
+              
+            </div>
+        </div>
+    </div>
+    <script src="js/linkedin-script.js"></script>
+</body>
+</html
